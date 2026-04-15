@@ -3,6 +3,7 @@ import express from "express";
 import type { Request, Response, NextFunction } from "express";
 import morgan from "morgan";
 import cors from "cors";
+// @ts-expect-error - Vercel cache is holding onto outdated Helmet types
 import helmet from "helmet";
 import compression from "compression";
 import cookieParser from "cookie-parser";
