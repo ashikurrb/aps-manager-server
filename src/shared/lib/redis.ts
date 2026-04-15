@@ -1,6 +1,10 @@
 import { Redis } from "ioredis";
 
-const redisUrl = process.env.REDIS_URL || "redis://127.0.0.1:6379";
+const redisUrl = process.env.REDIS_URL;
+
+if (!redisUrl) {
+  throw new Error("REDIS URL is missing");
+}
 
 const redis = new Redis(redisUrl, {
   maxRetriesPerRequest: null,
