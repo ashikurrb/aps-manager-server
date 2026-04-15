@@ -22,7 +22,7 @@ const transports: winston.transport[] = [
 ];
 
 
-//fixing for serverless environments, on vps deployent, we can use file transport
+//fixing for serverless environments
 if (process.env.NODE_ENV !== "production") {
   const logDir = path.join(process.cwd(), "logs");
   
