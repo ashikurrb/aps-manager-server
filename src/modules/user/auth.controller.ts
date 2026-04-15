@@ -67,7 +67,7 @@ export const createUser = async (
 
       user = await prisma.user.update({
         where: { id: existingUser.id },
-        data: { fullName, address, password: hashedPassword },
+        data: { fullName, address: address ?? null, password: hashedPassword },
       });
     } else {
       user = await prisma.user.create({
@@ -75,7 +75,7 @@ export const createUser = async (
           fullName,
           email,
           phone,
-          address,
+          address: address ?? null,
           password: hashedPassword,
           isEmailVerified: false,
           isPhoneVerified: false,
