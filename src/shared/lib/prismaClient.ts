@@ -10,7 +10,7 @@ if (!connectionString) {
 }
 
 const pool = new pg.Pool({ connectionString });
-const adapter = new PrismaPg(pool);
+const adapter = new PrismaPg(pool as any);
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 

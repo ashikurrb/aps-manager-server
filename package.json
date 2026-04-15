@@ -4,6 +4,7 @@
   "description": "Server API of APS Manager",
   "type": "module",
   "scripts": {
+    "postinstall": "prisma generate",
     "start": "tsx src/index.ts",
     "dev": "tsx watch src/index.ts"
   },
