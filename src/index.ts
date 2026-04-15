@@ -20,11 +20,6 @@ dotenv.config();
 const app = express();
 app.set("trust proxy", 1);
 
-//middleware, cors
-app.use(helmet());
-app.use(compression());
-app.use(cookieParser());
-
 // cors config
 const corsOptions: cors.CorsOptions = {
   origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",") : false,
@@ -32,6 +27,11 @@ const corsOptions: cors.CorsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
+
+//middleware
+app.use(helmet());
+app.use(compression());
+app.use(cookieParser());
 
 //global rate limiter
 app.use("/api", globalLimiter);
