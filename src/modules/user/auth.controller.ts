@@ -309,8 +309,7 @@ export const login = async (
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      // sameSite: "strict" as const,
-      sameSite: "none" as const,
+      sameSite: "strict" as const,
     };
 
     res.cookie("refreshToken", refreshToken, {
