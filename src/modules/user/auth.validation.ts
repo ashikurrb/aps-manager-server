@@ -66,7 +66,7 @@ export const verifyOtpSchema = z.object({
     .max(11, "Invalid phone number")
     .optional(),
   type: z.enum(["EMAIL_VERIFICATION", "PHONE_VERIFICATION"], {
-    required_error: "Verification type is required",
+    message: "Verification type is required",
   }),
   otp: z.string().min(1, "OTP is required"),
 });
