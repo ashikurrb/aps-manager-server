@@ -3,24 +3,36 @@ import { Redis } from "ioredis";
 const redisUrl = process.env.REDIS_URL;
 
 if (!redisUrl) {
-  throw new Error("Redis is missing");
+  throw new Error("REDIS URL is missing");
 }
 
 const redis = new Redis(redisUrl, {
   maxRetriesPerRequest: null,
-  enableReadyCheck: false,
+  enableReadyCheck: true,
+  connectTimeout: 10000,
   retryStrategy(times) {
-    console.warn(`[Redis] Retrying connection... Attempt: ${times}`);
-    return Math.min(times * 50, 5000); 
+    const delay = Math.min(times * 50, 5000);
+    console.warn(
+      `[Redis] Retrying connection in ${delay}ms... Attempt: ${times}`,
+    );
+    return delay;
   },
 });
 
+redis.on("ready", () => {
+  console.log("✅ Redis connected successfully");
+});
+
 redis.on("connect", () => {
-  console.log("✅ Redis client connected successfully");
+  console.log("🌐 Redis TCP connection established");
 });
 
 redis.on("error", (error) => {
   console.error("❌ Redis connection error:", error.message);
+});
+
+redis.on("reconnecting", () => {
+  console.log("🔄 Redis reconnecting...");
 });
 
 export default redis;

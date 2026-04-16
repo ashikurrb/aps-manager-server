@@ -309,7 +309,7 @@ export const login = async (
     const cookieOptions = {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? ("none" as const) : ("lax" as const),
+      sameSite: isProduction ? ("none" as const) : ("strict" as const),
     };
 
     res.cookie("refreshToken", refreshToken, {
