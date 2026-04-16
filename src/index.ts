@@ -9,7 +9,8 @@ import compression from "compression";
 import cookieParser from "cookie-parser";
 import { prisma } from "./shared/lib/prismaClient.js";
 import "./shared/lib/redis.js";
-import authRoutes from "../src/modules/user/auth.route.js";
+import authRoutes from "./modules/user/auth.routes.js";
+import clientRoutes from "./modules/client/client.routes.js";
 import { globalLimiter } from "./shared/utils/rateLimiter.js";
 import logger from "./shared/lib/logger.js";
 
@@ -47,6 +48,10 @@ app.get("/", (req: Request, res: Response) => {
 
 //routes
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/clients", clientRoutes);
+
+
+
 
 // Global error handles
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
