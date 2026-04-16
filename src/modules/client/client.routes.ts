@@ -1,5 +1,5 @@
 import express from "express";
-import { createClient, getAllClients } from "./client.controller.js";
+import { createClient, getAllClients, getClientProfile } from "./client.controller.js";
 import {
   isActive,
   isLoggedIn,
@@ -17,7 +17,7 @@ router.post("/", isLoggedIn, isPhoneVerified, createClient);
 router.get("/", isLoggedIn, isActive, isEmailVerified, isPhoneVerified, getAllClients);
 
 //Get Single
-router.get("/:id", isLoggedIn, isActive, isEmailVerified, isPhoneVerified);
+router.get("/:id", isLoggedIn, isActive, isEmailVerified, isPhoneVerified, getClientProfile);
 
 //Update
 router.patch("/:id", isLoggedIn, isActive, isEmailVerified, isPhoneVerified);

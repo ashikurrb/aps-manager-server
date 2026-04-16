@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { prisma } from "../../shared/lib/prismaClient.js";
-import { ClientsQuerySchema, CreateClientSchema } from "./client.validation.js";
+import { ClientIdParamSchema, ClientsQuerySchema, CreateClientSchema } from "./client.validation.js";
 
 export const createClient = async (
   req: Request,
@@ -64,10 +64,9 @@ export const getAllClients = async (
   next: NextFunction,
 ) => {
   try {
-
     const { page, limit } = ClientsQuerySchema.parse(req.query);
     const skip = (page - 1) * limit;
-    
+
     const [clients, totalClients] = await Promise.all([
       prisma.client.findMany({
         skip,
@@ -89,6 +88,55 @@ export const getAllClients = async (
         limit,
       },
       data: clients,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/* ---------------------------------------------------------------------------*/
+
+export const getClientProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { id } = ClientIdParamSchema.parse(req.params);
+
+    const client = await prisma.client.findUnique({
+      where: { id },
+      include:{
+        createdBy: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            avatar: true,
+          },
+        },
+        updatedBy: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            avatar: true,
+          },
+        },
+      }
+    });
+
+    if (!client) {
+      return res.status(404).json({
+        success: false,
+        message: "Client not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Client profile retrieved successfully",
+      data: client,
     });
   } catch (error) {
     next(error);
