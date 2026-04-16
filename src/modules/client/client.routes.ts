@@ -1,5 +1,5 @@
 import express from "express";
-import { createClient, getAllClients, getClientProfile } from "./client.controller.js";
+import { createClient, getAllClients, getClientProfile, updateClientProfile } from "./client.controller.js";
 import {
   isActive,
   isLoggedIn,
@@ -20,7 +20,7 @@ router.get("/", isLoggedIn, isActive, isEmailVerified, isPhoneVerified, getAllCl
 router.get("/:id", isLoggedIn, isActive, isEmailVerified, isPhoneVerified, getClientProfile);
 
 //Update
-router.patch("/:id", isLoggedIn, isActive, isEmailVerified, isPhoneVerified);
+router.patch("/:id", isLoggedIn, isActive, isEmailVerified, isPhoneVerified, updateClientProfile);
 
 //Delete
 router.delete("/:id", isLoggedIn, isActive, isEmailVerified, isPhoneVerified);

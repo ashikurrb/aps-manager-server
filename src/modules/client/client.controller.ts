@@ -1,6 +1,10 @@
 import type { NextFunction, Request, Response } from "express";
 import { prisma } from "../../shared/lib/prismaClient.js";
-import { ClientIdParamSchema, ClientsQuerySchema, CreateClientSchema } from "./client.validation.js";
+import {
+  ClientIdParamSchema,
+  ClientsQuerySchema,
+  CreateClientSchema,
+} from "./client.validation.js";
 
 export const createClient = async (
   req: Request,
@@ -102,11 +106,27 @@ export const getClientProfile = async (
   next: NextFunction,
 ) => {
   try {
-    const { id } = ClientIdParamSchema.parse(req.params);
+    const paramResult = ClientIdParamSchema.safeParse(req.params);
+    if (!paramResult.success) {
+      const firstIssue = paramResult.error.issues[0];
+
+      return res.status(400).json({
+        success: false,
+        message: firstIssue ? firstIssue.message : "Invalid request parameters",
+      });
+    }
+    const { id } = paramResult.data;
 
     const client = await prisma.client.findUnique({
       where: { id },
-      include:{
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        address: true,
+        createdAt: true,
+        updatedAt: true,
         createdBy: {
           select: {
             id: true,
@@ -123,7 +143,7 @@ export const getClientProfile = async (
             avatar: true,
           },
         },
-      }
+      },
     });
 
     if (!client) {
@@ -142,3 +162,97 @@ export const getClientProfile = async (
     next(error);
   }
 };
+
+/* ---------------------------------------------------------------------------*/
+
+export const updateClientProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const paramResult = ClientIdParamSchema.safeParse(req.params);
+    if (!paramResult.success) {
+      const [firstIssue] = paramResult.error.issues;
+      if (firstIssue) {
+        return res
+          .status(400)
+          .json({ success: false, message: firstIssue.message });
+      }
+    }
+    const id = (paramResult as any).data.id;
+
+    const validationResult = CreateClientSchema.partial().safeParse(req.body);
+    if (!validationResult.success) {
+      const [firstIssue] = validationResult.error.issues;
+      if (firstIssue) {
+        return res.status(400).json({
+          success: false,
+          message: firstIssue.message,
+        });
+      }
+      return res
+        .status(400)
+        .json({ success: false, message: "Validation error" });
+    }
+
+    const { name, email, phone, address } = validationResult.data;
+
+    const userId = req.user?.id;
+    if (!userId) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized Access" });
+    }
+
+    const existingClient = await prisma.client.findUnique({ where: { id } });
+    if (!existingClient) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Client not found" });
+    }
+
+    if (email || phone) {
+      const conflictClient = await prisma.client.findFirst({
+        where: {
+          id: { not: id },
+          OR: [email ? { email } : {}, phone ? { phone } : {}].filter(
+            (obj) => Object.keys(obj).length > 0,
+          ),
+        },
+      });
+
+      if (conflictClient) {
+        return res.status(409).json({
+          success: false,
+          message: "Email or phone number already exists",
+        });
+      }
+    }
+
+    const updateData = Object.fromEntries(
+      Object.entries({
+        name,
+        email,
+        phone,
+        address,
+        updatedById: userId,
+      }).filter(([_, v]) => v !== undefined),
+    );
+
+    const updatedClient = await prisma.client.update({
+      where: { id },
+      data: updateData,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Client updated successfully",
+      data: updatedClient,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/* ---------------------------------------------------------------------------*/
