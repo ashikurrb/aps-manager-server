@@ -1,5 +1,6 @@
-import { rateLimit } from "express-rate-limit";
-import { RedisStore } from "rate-limit-redis";
+import type { NextFunction, Request, Response } from "express";
+import rateLimit, { type RateLimitInfo } from "express-rate-limit";
+import RedisStore from "rate-limit-redis";
 import redis from "../lib/redis.js";
 
 //global limiter for all requests to prevent abuse
@@ -21,9 +22,23 @@ export const authLimiter = rateLimit({
   skip: () => process.env.NODE_ENV !== "production",
   windowMs: 15 * 60 * 1000,
   max: 5,
-  message: {
-    success: false,
-    message: "Too many login attempts. Try again in 15 mins.",
+  message: (req: Request, res: Response) => {
+    //define the exact time left
+    const rateLimitReq = req as Request & { rateLimit?: RateLimitInfo };
+    const resetTime = rateLimitReq.rateLimit?.resetTime;
+    if (resetTime) {
+      const msLeft = resetTime.getTime() - Date.now();
+      const minutes = Math.floor(msLeft / 60000);
+      const seconds = Math.floor((msLeft % 60000) / 1000);
+      return {
+        success: false,
+        message: `Too many login attempts. Try again in ${minutes}m ${seconds}s.`,
+      };
+    }
+    return {
+      success: false,
+      message: `Too many login attempts. Try again later.`,
+    };
   },
   standardHeaders: true,
   legacyHeaders: false,
