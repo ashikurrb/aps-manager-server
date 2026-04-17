@@ -1,6 +1,6 @@
-import type { NextFunction, Request, Response } from "express";
-import rateLimit, { type RateLimitInfo } from "express-rate-limit";
-import RedisStore from "rate-limit-redis";
+import type { Request, Response } from "express";
+import { rateLimit, type RateLimitInfo } from "express-rate-limit";
+import { RedisStore } from "rate-limit-redis";
 import redis from "../lib/redis.js";
 
 //global limiter for all requests to prevent abuse
@@ -14,6 +14,7 @@ export const globalLimiter = rateLimit({
   store: new RedisStore({
     sendCommand: (...args: string[]) =>
       redis.call(args[0]!, ...args.slice(1)) as any,
+    prefix: "rl:global:",
   }),
 });
 
@@ -45,6 +46,7 @@ export const authLimiter = rateLimit({
   store: new RedisStore({
     sendCommand: (...args: string[]) =>
       redis.call(args[0]!, ...args.slice(1)) as any,
+    prefix: "rl:auth:",
   }),
 });
 
@@ -62,5 +64,6 @@ export const otpLimiter = rateLimit({
   store: new RedisStore({
     sendCommand: (...args: string[]) =>
       redis.call(args[0]!, ...args.slice(1)) as any,
+    prefix: "rl:otp:",
   }),
 });

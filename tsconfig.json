@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",      
+    "outDir": "./dist",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "target": "ESNext",
@@ -12,9 +12,10 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "verbatimModuleSyntax": true, 
+    "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "moduleDetection": "force"
   },
