@@ -12,7 +12,7 @@ import {
   isEmailVerified,
   isPhoneVerified,
 } from "../../shared/middlewares/auth.middleware.js";
-import { authLimiter } from "../../shared/utils/rateLimiter.js";
+import { authLimiter, otpLimiter } from "../../shared/utils/rateLimiter.js";
 
 //declare router
 const router = express.Router();
@@ -37,6 +37,6 @@ router.get(
 );
 
 //Verify OTP
-router.post("/verify-otp", verifyOtp);
+router.post("/verify-otp",otpLimiter, verifyOtp);
 
 export default router;

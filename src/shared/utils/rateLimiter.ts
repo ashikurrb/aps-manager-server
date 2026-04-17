@@ -1,5 +1,9 @@
 import type { Request, Response } from "express";
-import { rateLimit, type RateLimitInfo } from "express-rate-limit";
+import {
+  rateLimit,
+  ipKeyGenerator,
+  type RateLimitInfo,
+} from "express-rate-limit";
 import { RedisStore } from "rate-limit-redis";
 import redis from "../lib/redis.js";
 
@@ -18,11 +22,23 @@ export const globalLimiter = rateLimit({
   }),
 });
 
+/*--------------------------------------------------------------------------------------------------*/
+
 //auth limiter to prevent brute-force
 export const authLimiter = rateLimit({
   skip: () => process.env.NODE_ENV !== "production",
   windowMs: 15 * 60 * 1000,
   max: 5,
+
+  //@ashikurrb note: block user based on email or phone. if user is not on db than blocked based in IP. rate limiter works based on the identifier. if same user get blocked with email and he tried with phone, he can login.
+
+  keyGenerator: (req: Request, res: Response) => {
+    if (req.body?.identifier) {
+      return req.body.identifier.toString().toLowerCase();
+    }
+    return ipKeyGenerator(req.ip || "unknown");
+  },
+
   message: (req: Request, res: Response) => {
     //define the exact time left
     const rateLimitReq = req as Request & { rateLimit?: RateLimitInfo };
@@ -49,6 +65,8 @@ export const authLimiter = rateLimit({
     prefix: "rl:auth:",
   }),
 });
+
+/*--------------------------------------------------------------------------------------------------*/
 
 //rate limiter for OTP requests to prevent abuse
 export const otpLimiter = rateLimit({
