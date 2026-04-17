@@ -68,16 +68,56 @@ export const getAllClients = async (
   next: NextFunction,
 ) => {
   try {
-    const { page, limit } = ClientsQuerySchema.parse(req.query);
+    const { page, limit, search } = ClientsQuerySchema.parse(req.query);
     const skip = (page - 1) * limit;
+
+    const cleanSearch = search ? search.replace(/^["']|["']$/g, "") : undefined;
+
+    const whereClause = cleanSearch
+      ? {
+          OR: [
+            { name: { contains: cleanSearch, mode: "insensitive" as const } },
+            { email: { contains: cleanSearch, mode: "insensitive" as const } },
+            { phone: { contains: cleanSearch, mode: "insensitive" as const } },
+          ],
+        }
+      : {};
 
     const [clients, totalClients] = await Promise.all([
       prisma.client.findMany({
+        where: whereClause,
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          address: true,
+          createdAt: true,
+          updatedAt: true,
+          createdBy: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              avatar: true,
+            },
+          },
+          updatedBy: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              avatar: true,
+            },
+          },
+        },
       }),
-      prisma.client.count(),
+      prisma.client.count({
+        where: whereClause,
+      }),
     ]);
 
     const totalPages = Math.ceil(totalClients / limit);
@@ -90,6 +130,7 @@ export const getAllClients = async (
         totalPages,
         currentPage: page,
         limit,
+        search: search || null,
       },
       data: clients,
     });

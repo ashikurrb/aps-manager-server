@@ -25,6 +25,7 @@ export const CreateClientSchema = z.object({
 export const ClientsQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(10),
+  search: z.string().optional(),
 });
 
 export const ClientIdParamSchema = z.object({
