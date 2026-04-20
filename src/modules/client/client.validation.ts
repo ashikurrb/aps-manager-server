@@ -17,7 +17,10 @@ export const CreateClientSchema = z.object({
           "Please use a permanent email address. Temporary domains are not allowed.",
       },
     ),
-  phone: z.string().min(11, "Phone number must be at least 11 characters"),
+  phone: z
+    .string()
+    .min(11, "Phone number must be at least 11 characters")
+    .max(11, "Phone number must be at most 11 characters"),
   address: z.string().optional().nullable(),
 });
 
