@@ -11,6 +11,7 @@ import { prisma } from "./shared/lib/prismaClient.js";
 import "./shared/lib/redis.js";
 import authRoutes from "./modules/user/auth.routes.js";
 import clientRoutes from "./modules/client/client.routes.js";
+import productRoutes from "./modules/product/product.routes.js";
 import { globalLimiter } from "./shared/utils/rateLimiter.js";
 import logger from "./shared/lib/logger.js";
 
@@ -49,6 +50,7 @@ app.get("/", (req: Request, res: Response) => {
 //routes
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/clients", clientRoutes);
+app.use ("/api/v1/products", productRoutes)
 
 
 

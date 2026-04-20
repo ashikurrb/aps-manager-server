@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { disposableSet } from "../user/auth.validation.js";
 
+//validation for create and update client
 export const CreateClientSchema = z.object({
   name: z.string().min(3, "Name is too short"),
   email: z

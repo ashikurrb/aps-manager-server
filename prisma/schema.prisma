@@ -18,6 +18,29 @@ enum UserStatus {
   BLOCKED
 }
 
+enum Angle{
+  FRONT
+  BACK
+  LEFT
+  RIGHT
+  TOP
+  BOTTOM
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+
 /* ---------------------------------------------------------------------------*/
 
 model User {
@@ -40,6 +63,8 @@ model User {
   isPhoneVerified Boolean    @default(false)
   phoneVerifiedAt DateTime?
 
+  refreshTokens   RefreshToken[]
+
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 
@@ -55,7 +80,8 @@ model User {
   createdClients  Client[] @relation("ClientCreatedBy")
   updatedClients  Client[] @relation("ClientUpdatedBy")
 
-  refreshTokens   RefreshToken[]
+  createdProducts  Product[] @relation("ProductCreatedBy")
+  updatedProducts  Product[] @relation("ProductUpdatedBy")
 }
 
 /* ---------------------------------------------------------------------------*/
@@ -88,3 +114,26 @@ model Client {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+/* ---------------------------------------------------------------------------*/
+
+model Product{
+  id         String   @id @default(cuid(2))
+  name       String
+  slug       String   @unique
+  price       Float
+  minQuantity Int
+  description String?
+
+  createdById String
+  updatedById String
+
+  createdBy   User    @relation("ProductCreatedBy", fields: [createdById], references: [id])
+  updatedBy   User    @relation("ProductUpdatedBy", fields: [updatedById], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+}
+
+/* ---------------------------------------------------------------------------*/
