@@ -242,7 +242,9 @@ export const updateProduct = async (
     }
 
     const { name, description, price, minQuantity } = validationResult.data;
-    const slug = name ? slugify(name, { lower: true, strict: true }) : undefined;
+    const slug = name
+      ? slugify(name, { lower: true, strict: true })
+      : undefined;
 
     const userId = req.user?.id;
     if (!userId) {
@@ -258,23 +260,23 @@ export const updateProduct = async (
         .json({ success: false, message: "Product not found" });
     }
 
-    if (name || description || price || minQuantity) {
-      const conflictProduct = await prisma.product.findFirst({
-        where: {
-          id: { not: id },
-          OR: [name ? { name } : {}, description ? { description } : {}, price ? { price } : {}, minQuantity ? { minQuantity } : {}].filter(
-            (obj) => Object.keys(obj).length > 0,
-          ),
-        },
-      });
+    // if (name || description || price || minQuantity) {
+    //   const conflictProduct = await prisma.product.findFirst({
+    //     where: {
+    //       id: { not: id },
+    //       OR: [slug ? { slug } : {}].filter(
+    //         (obj) => Object.keys(obj).length > 0,
+    //       ),
+    //     },
+    //   });
 
-      if (conflictProduct) {
-        return res.status(409).json({
-          success: false,
-          message: "Product number already exists",
-        });
-      }
-    }
+    //   if (conflictProduct) {
+    //     return res.status(409).json({
+    //       success: false,
+    //       message: "Product slug already exists",
+    //     });
+    //   }
+    // }
 
     const updateData = Object.fromEntries(
       Object.entries({
