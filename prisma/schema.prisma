@@ -18,7 +18,7 @@ enum UserStatus {
   BLOCKED
 }
 
-enum Angle{
+enum Angle {
   FRONT
   BACK
   LEFT
@@ -38,6 +38,12 @@ enum Priority {
   LOW
   MEDIUM
   HIGH
+}
+
+enum PaymentStatus {
+  NOT_PAID
+  PARTIALLY_PAID
+  COMPLETELY_PAID
 }
 
 
@@ -80,8 +86,8 @@ model User {
   createdClients  Client[] @relation("ClientCreatedBy")
   updatedClients  Client[] @relation("ClientUpdatedBy")
 
-  createdProducts  Product[] @relation("ProductCreatedBy")
-  updatedProducts  Product[] @relation("ProductUpdatedBy")
+  createdOrders  Order[] @relation("OrderCreatedBy")
+  updatedOrders  Order[] @relation("OrderUpdatedBy")
 }
 
 /* ---------------------------------------------------------------------------*/
@@ -105,6 +111,8 @@ model Client {
   phone       String   @unique
   address     String?
 
+  orders      Order[]
+
   createdById String
   updatedById String
 
@@ -117,23 +125,50 @@ model Client {
 
 /* ---------------------------------------------------------------------------*/
 
-model Product{
-  id         String   @id @default(cuid(2))
-  name       String
-  slug       String   @unique
-  price       Float
-  minQuantity Int
-  description String?
+model OrderItems {
+  id          String   @id @default(cuid(2))
+  orderId     String
+  
+  productName String   
+  angle       Angle[]    
+  quantity    Int
+  rate        Float    
+  total       Float  
 
-  createdById String
-  updatedById String
-
-  createdBy   User    @relation("ProductCreatedBy", fields: [createdById], references: [id])
-  updatedBy   User    @relation("ProductUpdatedBy", fields: [updatedById], references: [id])
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Order {
+  id            String        @id @default(cuid(2))
+  orderId       String
+  clientId      String
   
+  status        OrderStatus   @default(PENDING)
+  priority      Priority      @default(LOW)
+  orderDate     DateTime  
+  deadline      DateTime
+
+  paymentStatus PaymentStatus @default(NOT_PAID)
+  paidAmount    Float         @default(0)
+  dueAmount     Float         @default(0)
+
+  orderItems    OrderItems[]
+  totalPrice    Float         @default(0)
+  note          String?
+
+  client        Client        @relation(fields: [clientId], references: [id])
+
+  createdById   String
+  updatedById   String
+
+  createdBy     User          @relation("OrderCreatedBy", fields: [createdById], references: [id])
+  updatedBy     User          @relation("OrderUpdatedBy", fields: [updatedById], references: [id])
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 /* ---------------------------------------------------------------------------*/

@@ -12,10 +12,10 @@ import "./shared/lib/redis.js";
 import authRoutes from "./modules/user/auth.routes.js";
 import clientRoutes from "./modules/client/client.routes.js";
 import productRoutes from "./modules/product/product.routes.js";
-import analyticsRoute from "./modules/analytics/analytics.routes.js";
+import analyticsRoutes from "./modules/analytics/analytics.routes.js";
+import orderRoutes from "./modules/order/order.routes.js";
 import { globalLimiter } from "./shared/utils/rateLimiter.js";
 import logger from "./shared/lib/logger.js";
-import analyticsRoutes from "./modules/analytics/analytics.routes.js";
 
 // dotenv config
 dotenv.config();
@@ -54,6 +54,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/clients", clientRoutes);
 app.use ("/api/v1/products", productRoutes)
 app.use ("/api/v1/analytics", analyticsRoutes)
+app.use ("/api/v1/orders", orderRoutes)
 
 
 

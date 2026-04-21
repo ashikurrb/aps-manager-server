@@ -20,10 +20,9 @@ export const getDashboardData = async (
     const startDate = getStartDate(timeframe);
     const dateFilter = startDate ? { createdAt: { gte: startDate } } : {};
 
-    const [totalUsers, totalProducts, totalClients] = await Promise.all([
+    const [totalUsers, totalClients] = await Promise.all([
       prisma.user.count({ where: dateFilter }),
       prisma.client.count({ where: dateFilter }),
-      prisma.product.count({ where: dateFilter }),
     ]);
 
     // Send response
@@ -33,7 +32,6 @@ export const getDashboardData = async (
         timeframe,
         totalUsers,
         totalClients,
-        totalProducts,
       },
     });
   } catch (error) {
