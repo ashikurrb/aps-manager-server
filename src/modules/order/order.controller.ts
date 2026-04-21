@@ -228,7 +228,7 @@ export const updateOrder = async (
     const updateData = validation.data;
 
     const existingOrder = await prisma.order.findUnique({
-      where: { id },
+      where: { id: id as string },
       include: { orderItems: true }
     });
 
@@ -270,30 +270,29 @@ export const updateOrder = async (
     const updatedOrder = await prisma.$transaction(async (tx) => {
       if (updateData.items) {
         await tx.orderItems.deleteMany({
-          where: { orderId: id },
+          where: { orderId: id as string },
         });
       }
 
       return await tx.order.update({
-        where: { id },
+        where: { id: id as string },
         data: {
-          clientId: updateData.clientId,
-          priority: updateData.priority,
-          status: updateData.status,
-          orderDate: updateData.orderDate ? new Date(updateData.orderDate) : undefined,
-          deadline: updateData.deadline ? new Date(updateData.deadline) : undefined,
-          note: updateData.note,
-          
           totalPrice: finalTotalPrice,
           paidAmount: finalPaidAmount,
           dueAmount: dueAmount,
-          paymentStatus: finalPaymentStatus,
-          
+          paymentStatus: finalPaymentStatus as any,
           updatedById: userId,
-
-          orderItems: updateData.items ? {
-            create: newItemsPayload,
-          } : undefined,
+          ...(updateData.clientId && { clientId: updateData.clientId }),
+          ...(updateData.priority && { priority: updateData.priority as any }),
+          ...(updateData.status && { status: updateData.status as any }),
+          ...(updateData.note !== undefined && { note: updateData.note }),
+          ...(updateData.orderDate && { orderDate: new Date(updateData.orderDate) }),
+          ...(updateData.deadline && { deadline: new Date(updateData.deadline) }),
+          ...(updateData.items && {
+            orderItems: {
+              create: newItemsPayload,
+            },
+          }),
         },
         include: {
           orderItems: true,

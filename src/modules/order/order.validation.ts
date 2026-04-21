@@ -36,27 +36,23 @@ export const OrderIdParamSchema = z.object({
   id: z.string().cuid2({ message: "Invalid ID format" }),
 });
 
+
+//update order schema
 export const UpdateOrderSchema = z.object({
   clientId: z.string().optional(),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
+  status: z.enum(["PENDING", "PROCESSING", "COMPLETED", "CANCELLED"]).optional(),
+  paymentStatus: z.enum(["NOT_PAID", "PARTIALLY_PAID", "COMPLETELY_PAID"]).optional(),
   orderDate: z.string().optional(),
   deadline: z.string().optional(),
-  status: z.enum(["PENDING", "PROCESSING", "COMPLETED", "CANCELLED"]),
   note: z.string().optional(),
-
-  paymentStatus: z.enum(["NOT_PAID", "PARTIALLY_PAID", "COMPLETELY_PAID"]),
   paidAmount: z.number().min(0).optional(),
-
-  items: z
-    .array(
-      z.object({
-        productName: z.string().min(1),
-        angle: z.array(
-          z.enum(["FRONT", "BACK", "LEFT", "RIGHT", "TOP", "BOTTOM"]),
-        ),
-        quantity: z.number().int().positive(),
-        rate: z.number().min(0),
-      }),
-    )
-    .optional(),
+  items: z.array(
+    z.object({
+      productName: z.string().min(1),
+      angle: z.array(z.enum(["FRONT", "BACK", "LEFT", "RIGHT", "TOP", "BOTTOM"])),
+      quantity: z.number().int().positive(),
+      rate: z.number().min(0),
+    })
+  ).optional(),
 });
