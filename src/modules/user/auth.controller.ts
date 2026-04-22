@@ -283,7 +283,12 @@ export const login = async (
     }
 
     const accessToken = jwt.sign(
-      { id: user.id, role: user.role },
+      {
+        id: user.id,
+        role: user.role,
+        isEmailVerified: user.isEmailVerified,
+        isPhoneVerified: user.isPhoneVerified,
+      },
       process.env.JWT_ACCESS_SECRET!,
       { expiresIn: "15m" },
     );
@@ -397,7 +402,12 @@ export const refreshToken = async (
     }
 
     const newAccessToken = jwt.sign(
-      { id: user.id, role: user.role },
+      {
+        id: user.id,
+        role: user.role,
+        isEmailVerified: user.isEmailVerified,
+        isPhoneVerified: user.isPhoneVerified,
+      },
       process.env.JWT_ACCESS_SECRET!,
       { expiresIn: "15m" },
     );
@@ -469,10 +479,13 @@ export const logout = async (req: Request, res: Response) => {
       });
     }
 
+    const isProduction = process.env.NODE_ENV === "production";
+
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict" as const,
+      secure: isProduction,
+      sameSite: isProduction ? ("none" as const) : ("lax" as const),
+      path: "/",
     };
 
     res.clearCookie("accessToken", cookieOptions);

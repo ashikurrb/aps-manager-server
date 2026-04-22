@@ -184,6 +184,25 @@ export const getClientProfile = async (
             avatar: true,
           },
         },
+        orders: {
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            orderId: true,
+            status: true,
+            priority: true,
+            paymentStatus: true,
+            totalPrice: true,
+            paidAmount: true,
+            dueAmount: true,
+            orderDate: true,
+            deadline: true,
+            createdAt: true,
+          },
+        },
+        _count: {
+          select: { orders: true },
+        },
       },
     });
 
@@ -194,10 +213,26 @@ export const getClientProfile = async (
       });
     }
 
+    const totalSpend = client.orders.reduce(
+      (sum, order) => sum + order.totalPrice,
+      0,
+    );
+    const totalDue = client.orders.reduce(
+      (sum, order) => sum + order.dueAmount,
+      0,
+    );
+
     res.status(200).json({
       success: true,
       message: "Client profile retrieved successfully",
-      data: client,
+      data: {
+        ...client,
+        stats: {
+          totalOrders: client._count.orders,
+          totalSpend,
+          totalDue,
+        },
+      },
     });
   } catch (error) {
     next(error);

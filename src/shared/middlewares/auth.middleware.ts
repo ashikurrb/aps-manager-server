@@ -9,11 +9,13 @@ declare global {
         id: string;
         role: string;
         isEmailVerified: boolean;
-        isPhoneVerified: boolean;
+      isPhoneVerified: boolean;
       };
     }
   }
 }
+
+/*--------------------------------------------------------------------------------------------------*/
 
 //check if logged in
 export const isLoggedIn = async (
@@ -56,6 +58,8 @@ export const isLoggedIn = async (
   }
 };
 
+/*--------------------------------------------------------------------------------------------------*/
+
 //check if account is active or blocked or inactive
 export const isActive = async (
   req: Request,
@@ -79,6 +83,8 @@ export const isActive = async (
   next();
 };
 
+/*--------------------------------------------------------------------------------------------------*/
+
 //check if user is admin
 export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   if (req.user?.role !== "ADMIN") {
@@ -89,6 +95,8 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   }
   next();
 };
+
+/*--------------------------------------------------------------------------------------------------*/
 
 //check if users phone number is verified
 export const isPhoneVerified = async (
@@ -113,6 +121,8 @@ export const isPhoneVerified = async (
   next();
 };
 
+/*--------------------------------------------------------------------------------------------------*/
+
 //check if users email is verified
 export const isEmailVerified = async (
   req: Request,
@@ -135,3 +145,5 @@ export const isEmailVerified = async (
 
   next();
 };
+
+/*--------------------------------------------------------------------------------------------------*/
