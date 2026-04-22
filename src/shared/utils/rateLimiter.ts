@@ -7,11 +7,10 @@ import {
 import { RedisStore } from "rate-limit-redis";
 import redis from "../lib/redis.js";
 
-//global limiter for all requests to prevent abuse
 export const globalLimiter = rateLimit({
   skip: () => process.env.NODE_ENV !== "production",
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 1500,
   message: { success: false, message: "Too many requests. Try again later." },
   standardHeaders: true,
   legacyHeaders: false,
@@ -24,23 +23,18 @@ export const globalLimiter = rateLimit({
 
 /*--------------------------------------------------------------------------------------------------*/
 
-//auth limiter to prevent brute-force
 export const authLimiter = rateLimit({
   skip: () => process.env.NODE_ENV !== "production",
   windowMs: 15 * 60 * 1000,
   max: 5,
-
-  //@ashikurrb note: block user based on email or phone. if user is not on db than blocked based in IP. rate limiter works based on the identifier. if same user get blocked with email and he tried with phone, he can login.
-
   keyGenerator: (req: Request, res: Response) => {
+    const ip = ipKeyGenerator(req.ip || "unknown");
     if (req.body?.identifier) {
-      return req.body.identifier.toString().toLowerCase();
+      return `${ip}:${req.body.identifier.toString().toLowerCase()}`;
     }
-    return ipKeyGenerator(req.ip || "unknown");
+    return ip;
   },
-
   message: (req: Request, res: Response) => {
-    //define the exact time left
     const rateLimitReq = req as Request & { rateLimit?: RateLimitInfo };
     const resetTime = rateLimitReq.rateLimit?.resetTime;
     if (resetTime) {
@@ -68,7 +62,6 @@ export const authLimiter = rateLimit({
 
 /*--------------------------------------------------------------------------------------------------*/
 
-//rate limiter for OTP requests to prevent abuse
 export const otpLimiter = rateLimit({
   skip: () => process.env.NODE_ENV !== "production",
   windowMs: 15 * 60 * 1000,
@@ -83,5 +76,24 @@ export const otpLimiter = rateLimit({
     sendCommand: (...args: string[]) =>
       redis.call(args[0]!, ...args.slice(1)) as any,
     prefix: "rl:otp:",
+  }),
+});
+
+/*--------------------------------------------------------------------------------------------------*/
+
+export const refreshLimiter = rateLimit({
+  skip: () => process.env.NODE_ENV !== "production",
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: {
+    success: false,
+    message: "Too many refresh requests from this IP, please try again later.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: new RedisStore({
+    sendCommand: (...args: string[]) =>
+      redis.call(args[0]!, ...args.slice(1)) as any,
+    prefix: "rl:refresh:",
   }),
 });

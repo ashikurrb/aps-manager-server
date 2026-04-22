@@ -4,6 +4,7 @@ import {
   getMe,
   login,
   logout,
+  refreshToken,
   verifyOtp,
 } from "./auth.controller.js";
 import {
@@ -12,7 +13,11 @@ import {
   isEmailVerified,
   isPhoneVerified,
 } from "../../shared/middlewares/auth.middleware.js";
-import { authLimiter, otpLimiter } from "../../shared/utils/rateLimiter.js";
+import {
+  authLimiter,
+  otpLimiter,
+  refreshLimiter,
+} from "../../shared/utils/rateLimiter.js";
 
 //declare router
 const router = express.Router();
@@ -22,6 +27,9 @@ router.post("/create-user", authLimiter, createUser);
 
 //Login
 router.post("/login", authLimiter, login);
+
+//Refresh Token
+router.post("/refresh-token", refreshLimiter, refreshToken);
 
 //Logout
 router.post("/logout", isLoggedIn, logout);
@@ -37,6 +45,6 @@ router.get(
 );
 
 //Verify OTP
-router.post("/verify-otp",otpLimiter, verifyOtp);
+router.post("/verify-otp", otpLimiter, verifyOtp);
 
 export default router;

@@ -341,6 +341,87 @@ export const login = async (
   }
 };
 
+/*--------------------------------------------------------------------------------------------------*/
+
+export const refreshToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const incomingRefreshToken = req.cookies.refreshToken;
+
+    if (!incomingRefreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: No refresh token provided",
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(
+        incomingRefreshToken,
+        process.env.JWT_REFRESH_SECRET!,
+      ) as { id: string };
+    } catch (error) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: Refresh token expired or invalid",
+      });
+    }
+
+    const storedToken = await prisma.refreshToken.findFirst({
+      where: {
+        token: incomingRefreshToken,
+        userId: decoded.id,
+      },
+    });
+
+    if (!storedToken) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: Refresh token not found or revoked",
+      });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+    });
+
+    if (!user || user.status !== "ACTIVE") {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: User account suspended or deleted",
+      });
+    }
+
+    const newAccessToken = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_ACCESS_SECRET!,
+      { expiresIn: "15m" },
+    );
+
+    const isProduction = process.env.NODE_ENV === "production";
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "strict",
+      path: "/",
+      maxAge: 15 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Access token refreshed successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/*--------------------------------------------------------------------------------------------------*/
+
 //get self info
 export const getMe = async (req: Request, res: Response) => {
   try {
@@ -374,6 +455,8 @@ export const getMe = async (req: Request, res: Response) => {
     });
   }
 };
+
+/*--------------------------------------------------------------------------------------------------*/
 
 //Logout User
 export const logout = async (req: Request, res: Response) => {
