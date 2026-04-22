@@ -18,22 +18,33 @@ export const getDashboardData = async (
     const { timeframe } = query.data;
 
     const startDate = getStartDate(timeframe);
+
     const dateFilter = startDate ? { createdAt: { gte: startDate } } : {};
 
-    const [totalUsers, totalClients, totalOrders] = await Promise.all([
-      prisma.user.count({ where: dateFilter }),
-      prisma.client.count({ where: dateFilter }),
-      prisma.order.count({ where: dateFilter }),
-    ]);
+    const [totalUsers, totalClients, totalOrders, earningsResult] =
+      await Promise.all([
+        prisma.user.count({ where: dateFilter }),
+        prisma.client.count({ where: dateFilter }),
+        prisma.order.count({ where: dateFilter }),
+        prisma.order.aggregate({
+          where: dateFilter,
+          _sum: {
+            totalPrice: true,
+            paidAmount: true,
+          },
+        }),
+      ]);
 
-    // Send response
     res.status(200).json({
       success: true,
+      message: `Analytics for ${timeframe} retrieved successfully`,
       data: {
         timeframe,
         totalUsers,
         totalClients,
         totalOrders,
+        totalEarnings: earningsResult._sum.totalPrice || 0,
+        totalCollected: earningsResult._sum.paidAmount || 0,
       },
     });
   } catch (error) {
