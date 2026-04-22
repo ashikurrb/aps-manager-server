@@ -107,6 +107,7 @@ model RefreshToken {
 model Client {
   id          String   @id @default(cuid(2))
   name        String
+  slug        String  @unique
   email       String   @unique
   phone       String   @unique
   address     String?

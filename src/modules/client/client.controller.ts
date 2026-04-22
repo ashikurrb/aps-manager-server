@@ -5,6 +5,7 @@ import {
   ClientsQuerySchema,
   CreateClientSchema,
 } from "./client.validation.js";
+import slugify from "slugify";
 
 export const createClient = async (
   req: Request,
@@ -24,10 +25,23 @@ export const createClient = async (
 
     const { name, email, phone, address } = validationResult.data;
 
-    if (!req.user?.id) {
-      res.status(401).json({ message: "Unauthorized Access" });
-      return;
+    const baseSlug = slugify(name, {
+      lower: true,
+      strict: true,
+    });
+
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (await prisma.client.findUnique({ where: { slug } })) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
     }
+
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized Access" });
+    }
+
     const existingClient = await prisma.client.findFirst({
       where: { OR: [{ email }, { phone }] },
     });
@@ -42,6 +56,7 @@ export const createClient = async (
     const newClient = await prisma.client.create({
       data: {
         name,
+        slug,
         email,
         phone,
         address: address ?? null,
@@ -92,6 +107,7 @@ export const getAllClients = async (
         select: {
           id: true,
           name: true,
+          slug: true,
           email: true,
           phone: true,
           address: true,
@@ -163,6 +179,7 @@ export const getClientProfile = async (
       select: {
         id: true,
         name: true,
+        slug: true,
         email: true,
         phone: true,
         address: true,
@@ -198,6 +215,23 @@ export const getClientProfile = async (
             orderDate: true,
             deadline: true,
             createdAt: true,
+            updatedAt: true,
+            createdBy: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+                avatar: true,
+              },
+            },
+            updatedBy: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+                avatar: true,
+              },
+            },
           },
         },
         _count: {

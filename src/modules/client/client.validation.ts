@@ -3,10 +3,11 @@ import { disposableSet } from "../user/auth.validation.js";
 
 //validation for create and update client
 export const CreateClientSchema = z.object({
-  name: z.string().min(3, "Name is too short"),
+  name: z.string().trim().min(3, "Name is too short"),
   email: z
     .string()
     .min(1, "Email is required")
+    .toLowerCase()
     .pipe(z.email("Invalid email address"))
     .refine(
       (email) => {
@@ -20,9 +21,15 @@ export const CreateClientSchema = z.object({
     ),
   phone: z
     .string()
-    .min(11, "Phone number must be at least 11 characters")
-    .max(11, "Phone number must be at most 11 characters"),
-  address: z.string().optional().nullable(),
+    .trim()
+    .regex(/^\d+$/, "Phone number must contain only digits")
+    .length(11, "Phone number must be exactly 11 digits"),
+  address: z
+    .string()
+    .trim()
+    .max(500, "Address is too long")
+    .optional()
+    .nullable(),
 });
 
 // For pagination in getAllClients
